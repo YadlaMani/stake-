@@ -3,21 +3,42 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 
-import "src/Contract.sol";
+import "../src/StakingContract.sol";
 
 contract TestContract is Test {
-    Contract c;
+    StakingContract stakingcontract;
+    address user = address(0x123);
 
     function setUp() public {
-        c = new Contract();
+        stakingcontract = new StakingContract();
+        vm.deal(user, 10 ether);
     }
 
-    function testBar() public {
-        assertEq(uint256(1), uint256(1), "ok");
+    function testStake() public {
+        vm.startPrank(user);
+        stakingcontract.stake{value: 1 ether}(1 ether);
+        assertEq(
+            stakingcontract.getStakedBalance(),
+            1 ether,
+            "Staked balance should be 1 ether"
+        );
+        vm.stopPrank();
     }
 
-    function testFoo(uint256 x) public {
-        vm.assume(x < type(uint128).max);
-        assertEq(x + x, x * 2);
+    function testUnStake() public {
+        vm.startPrank(user);
+        stakingcontract.stake{value: 5 ether}(5 ether);
+        assertEq(
+            stakingcontract.getStakedBalance(),
+            5 ether,
+            "Staked balance should be 5 ether"
+        );
+        stakingcontract.unStake(2 ether);
+        assertEq(
+            stakingcontract.getStakedBalance(),
+            3 ether,
+            "Staked balance should be 3"
+        );
+        vm.stopPrank();
     }
 }
